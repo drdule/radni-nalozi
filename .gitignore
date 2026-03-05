@@ -1,0 +1,32 @@
+# WordPress
+wp-config.php
+wp-content/uploads/
+wp-content/cache/
+wp-content/backup/
+wp-content/plugins/jetpack/
+
+# RN Print Ponude
+wp-content/plugins/rn-print-ponude/uploads/
+wp-content/plugins/rn-print-ponude/cache/
+wp-content/plugins/rn-print-ponude/logs/
+
+# Dependencies
+wp-content/plugins/*/vendor/
+wp-content/plugins/*/node_modules/
+wp-content/themes/*/vendor/
+wp-content/themes/*/node_modules/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp
+*.log
+*.tmp

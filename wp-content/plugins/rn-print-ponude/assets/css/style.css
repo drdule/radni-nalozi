@@ -1,0 +1,225 @@
+/* RN Print Ponude Frontend Styles */
+
+.rnp-container {
+	max-width: 800px;
+	margin: 40px auto;
+	padding: 20px;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.rnp-form-wrapper {
+	background: #fff;
+	padding: 30px;
+	border-radius: 8px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.rnp-form-wrapper h2 {
+	margin-top: 0;
+	color: #333;
+	font-size: 24px;
+	margin-bottom: 30px;
+	text-align: center;
+}
+
+.rnp-form {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.form-group {
+	display: flex;
+	flex-direction: column;
+}
+
+.form-group label {
+	font-weight: 600;
+	margin-bottom: 8px;
+	color: #333;
+	font-size: 14px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group input[type="url"],
+.form-group input[type="number"],
+.form-group input[type="file"],
+.form-group select,
+.form-group textarea {
+	padding: 10px 12px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	font-size: 14px;
+	font-family: inherit;
+	transition: border-color 0.3s;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="email"]:focus,
+.form-group input[type="tel"]:focus,
+.form-group input[type="url"]:focus,
+.form-group input[type="number"]:focus,
+.form-group input[type="file"]:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+	outline: none;
+	border-color: #0073aa;
+	box-shadow: 0 0 0 3px rgba(0, 115, 170, 0.1);
+}
+
+.form-group select,
+.form-group select option {
+	background-color: #fff;
+	color: #333;
+}
+
+.form-group textarea {
+	resize: vertical;
+	min-height: 100px;
+}
+
+.form-group small {
+	font-size: 12px;
+	color: #666;
+	margin-top: 4px;
+}
+
+.form-group #unit-label {
+	font-weight: 600;
+	color: #0073aa;
+	margin-top: 0;
+	font-size: 13px;
+}
+
+#unit-display {
+	margin: 0;
+	color: #666;
+	font-size: 14px;
+}
+
+/* Finishes checkboxes */
+#finishes-list {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.finish-option {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.finish-option input[type="checkbox"] {
+	width: 18px;
+	height: 18px;
+	cursor: pointer;
+}
+
+.finish-option label {
+	margin-bottom: 0;
+	cursor: pointer;
+	font-weight: 400;
+}
+
+/* Price Display */
+.rnp-price-display {
+	background: #f5f5f5;
+	padding: 15px;
+	border-radius: 4px;
+	border-left: 4px solid #0073aa;
+}
+
+.rnp-price-display label {
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	margin-bottom: 8px;
+}
+
+.rnp-price {
+	color: #0073aa;
+	font-size: 32px;
+	font-weight: bold;
+	margin: 0;
+	font-family: 'Courier New', monospace;
+}
+
+/* Buttons */
+.rnp-btn-submit {
+	padding: 12px 24px;
+	background-color: #0073aa;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	font-size: 16px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background-color 0.3s;
+	align-self: flex-start;
+}
+
+.rnp-btn-submit:hover {
+	background-color: #005a87;
+}
+
+.rnp-btn-submit:active {
+	transform: scale(0.98);
+}
+
+.rnp-btn-submit:disabled {
+	background-color: #ccc;
+	cursor: not-allowed;
+}
+
+/* Messages */
+.rnp-message {
+	padding: 15px;
+	border-radius: 4px;
+	font-size: 14px;
+	margin-top: 20px;
+}
+
+.rnp-message p {
+	margin: 0;
+}
+
+.rnp-success {
+	background-color: #d4edda;
+	border: 1px solid #c3e6cb;
+	color: #155724;
+}
+
+.rnp-error {
+	background-color: #f8d7da;
+	border: 1px solid #f5c6cb;
+	color: #721c24;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+	.rnp-container {
+		margin: 20px auto;
+		padding: 10px;
+	}
+
+	.rnp-form-wrapper {
+		padding: 20px;
+	}
+
+	.rnp-form-wrapper h2 {
+		font-size: 20px;
+	}
+
+	.form-group input,
+	.form-group select,
+	.form-group textarea {
+		font-size: 16px;
+	}
+
+	.rnp-price {
+		font-size: 24px;
+	}
+}
