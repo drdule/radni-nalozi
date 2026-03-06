@@ -40,33 +40,38 @@ class Frontend {
 			<div class="rnp-form-wrapper">
 				<h2>Kalkulator cena za štampu</h2>
 
+				<!-- Status Message (shown when quote is in progress) -->
+				<div class="rnp-status-message"></div>
+
 				<form id="rnp-form" class="rnp-form" enctype="multipart/form-data">
-					<?php wp_nonce_field( 'rnp_submit_quote', 'rnp_nonce' ); ?>
+					<?php wp_nonce_field( 'rnp_nonce', 'nonce' ); ?>
 
 					<!-- Material Selection -->
 					<div class="form-group">
 						<label for="material">Materijal:</label>
 						<select id="material" name="material" required>
 							<option value="">-- Odaberite materijal --</option>
-							<?php foreach ( $materials as $material ) : ?>
-								<option value="<?php echo esc_attr( $material->id ); ?>">
-									<?php echo esc_html( $material->name ); ?>
-								</option>
-							<?php endforeach; ?>
-						</select>
-					</div>
-
-					<!-- Unit Type Display -->
-					<div class="form-group">
-						<label>Jedinica:</label>
-						<p id="unit-display">Odaberite materijal</p>
-					</div>
-
-					<!-- Dimensions / Quantity -->
-					<div id="dimensions-group" class="form-group" style="display:none;">
-						<label for="quantity">Količina:</label>
-						<input type="number" id="quantity" name="quantity" step="0.01" placeholder="0.00" />
-						<small id="unit-label">m²</small>
+						<?php $this->render_materials_with_categories(); ?>
+						<div id="dimensions-fields" style="display:none;">
+							<label>Dimenzije:</label>
+							<div class="dimensions-row">
+								<div class="dimension-item">
+									<label for="width">Širina (mm):</label>
+									<input type="number" id="width" name="width" min="0" step="0.01" placeholder="0.00" />
+								</div>
+								<div class="dimension-item">
+									<label for="height">Visina (mm):</label>
+									<input type="number" id="height" name="height" min="0" step="0.01" placeholder="0.00" />
+								</div>
+							</div>
+							<p id="calculated-area" style="font-size: 0.9em; color: #666; margin-top: 8px;">
+								Površina: <strong id="area-value">-</strong>
+							</p>
+						</div>
+						<div class="dimension-item">
+							<label for="quantity">Broj komada:</label>
+							<input type="number" id="quantity" name="quantity" min="1" step="1" value="1" required />
+						</div>
 					</div>
 
 					<!-- Finishes -->
@@ -95,20 +100,15 @@ class Frontend {
 					</div>
 
 					<div class="form-group">
-						<label for="customer-phone">Telefon (opciono):</label>
-						<input type="tel" id="customer-phone" name="customer_phone" placeholder="+381..." />
+						<label for="customer-phone">Telefon:</label>
+						<input type="tel" id="customer-phone" name="customer_phone" required placeholder="+381..." />
 					</div>
 
-					<!-- File Upload / Link -->
+					<!-- File Upload -->
 					<div class="form-group">
-						<label for="file-upload">Fajl (PDF, AI, PSD, JPG, PNG) ili link:</label>
-						<input type="file" id="file-upload" name="file_upload" accept=".pdf,.ai,.psd,.jpg,.jpeg,.png,.tiff" />
-						<small>Max 150MB</small>
-					</div>
-
-					<div class="form-group">
-						<label for="file-link">Ili polje za link (WeTransfer, Google Drive):</label>
-						<input type="url" id="file-link" name="file_link" placeholder="https://..." />
+						<label for="file-upload">Priložite fajl (PDF, AI, PSD, JPG, PNG) ili link:</label>
+						<input type="file" id="file-upload" name="file_upload[]" multiple accept=".pdf,.ai,.psd,.jpg,.jpeg,.png,.tiff" />
+						<small>Možete izaberati više fajlova odjednom. Max 150MB po fajlu.</small>
 					</div>
 
 					<!-- Notes -->
@@ -133,5 +133,51 @@ class Frontend {
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Render materials grouped by categories
+	 */
+	private function render_materials_with_categories() {
+		$categories = $this->db->get_active_categories();
+		$materials = $this->db->get_materials();
+
+		// Group materials by category
+		$grouped = array();
+		foreach ( $materials as $material ) {
+			$cat_id = $material->category_id ? $material->category_id : 0;
+			if ( ! isset( $grouped[ $cat_id ] ) ) {
+				$grouped[ $cat_id ] = array();
+			}
+			$grouped[ $cat_id ][] = $material;
+		}
+
+		// Render optgroups
+		foreach ( $categories as $category ) {
+			if ( isset( $grouped[ $category->id ] ) ) {
+				?>
+				<optgroup label="<?php echo esc_attr( $category->name ); ?>">
+					<?php foreach ( $grouped[ $category->id ] as $material ) : ?>
+						<option value="<?php echo esc_attr( $material->id ); ?>">
+							<?php echo esc_html( $material->name ); ?>
+						</option>
+					<?php endforeach; ?>
+				</optgroup>
+				<?php
+			}
+		}
+
+		// Render materials without category
+		if ( isset( $grouped[0] ) ) {
+			?>
+			<optgroup label="Ostalo">
+				<?php foreach ( $grouped[0] as $material ) : ?>
+					<option value="<?php echo esc_attr( $material->id ); ?>">
+						<?php echo esc_html( $material->name ); ?>
+					</option>
+				<?php endforeach; ?>
+			</optgroup>
+			<?php
+		}
 	}
 }

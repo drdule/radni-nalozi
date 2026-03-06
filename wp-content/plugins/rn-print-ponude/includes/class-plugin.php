@@ -78,6 +78,7 @@ class Plugin {
 	public function shortcode() {
 		wp_enqueue_style( 'rnp-style', RNP_PLUGIN_URL . 'assets/css/style.css', array(), RNP_VERSION );
 		wp_enqueue_script( 'rnp-script', RNP_PLUGIN_URL . 'assets/js/script.js', array( 'jquery' ), RNP_VERSION, true );
+		wp_enqueue_script( 'rnp-quote-status', RNP_PLUGIN_URL . 'assets/js/quote-status.js', array( 'jquery' ), RNP_VERSION, true );
 
 		// Localize script dengan data
 		wp_localize_script( 'rnp-script', 'rnpData', array(
@@ -96,9 +97,34 @@ class Plugin {
 	 * Plugin activation
 	 */
 	public static function activate() {
+		// Activation hook runs before plugins_loaded, so load DB class explicitly.
+		if ( ! class_exists( __NAMESPACE__ . '\\Database' ) ) {
+			require_once RNP_PLUGIN_DIR . 'includes/class-database.php';
+		}
+
 		// Create tables
 		$database = new Database();
 		$database->create_tables();
+
+		// Create protected upload directory and .htaccess
+		$upload_dir = wp_upload_dir();
+		$rnp_upload_path = $upload_dir['basedir'] . '/rnp-quotes/';
+		
+		if ( ! is_dir( $rnp_upload_path ) ) {
+			wp_mkdir_p( $rnp_upload_path );
+		}
+
+		// Create .htaccess file to protect upload folder
+		$htaccess_file = $rnp_upload_path . '.htaccess';
+		$htaccess_content = "# Protect RNP quotes directory\n";
+		$htaccess_content .= "Options -Indexes\n";
+		$htaccess_content .= "<FilesMatch \"\\.php$\">\n";
+		$htaccess_content .= "    Deny from all\n";
+		$htaccess_content .= "</FilesMatch>\n";
+
+		if ( ! file_exists( $htaccess_file ) ) {
+			file_put_contents( $htaccess_file, $htaccess_content );
+		}
 
 		// Flush rewrite rules
 		flush_rewrite_rules();

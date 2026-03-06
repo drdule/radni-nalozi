@@ -1,0 +1,12 @@
+# Zaštita RNP quote upload foldera
+# Zabraniti direktorijumskom ažuriranju
+Options -Indexes
+
+# Zabraniti izvršavanje PHP koda
+php_flag engine off
+<FilesMatch "\.php$">
+	Deny from all
+</FilesMatch>
+
+# Dozvoli samo čitanje fajlova od strane servera
+# Sprečiti bilo koga da direktno pristupi fajlovima

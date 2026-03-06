@@ -41,6 +41,9 @@ class Ajax {
 
 		add_action( 'wp_ajax_rnp_submit_quote', array( $this, 'submit_quote' ) );
 		add_action( 'wp_ajax_nopriv_rnp_submit_quote', array( $this, 'submit_quote' ) );
+
+		add_action( 'wp_ajax_rnp_get_quote_status', array( $this, 'get_quote_status' ) );
+		add_action( 'wp_ajax_nopriv_rnp_get_quote_status', array( $this, 'get_quote_status' ) );
 	}
 
 	/**
@@ -141,12 +144,11 @@ class Ajax {
 			wp_send_json_error( array( 'message' => 'Popunite sve obavezne podatke.' ) );
 		}
 
-		// Validate file or link
-		$has_file = ! empty( $_FILES['file_upload']['name'] );
-		$has_link = ! empty( $_POST['file_link'] );
+		// Validate file upload is required
+		$has_files = ! empty( $_FILES['file_upload']['name'] ) && is_array( $_FILES['file_upload']['name'] );
 
-		if ( ! $has_file && ! $has_link ) {
-			wp_send_json_error( array( 'message' => 'Morate upload-ovati fajl ili polje link.' ) );
+		if ( ! $has_files ) {
+			wp_send_json_error( array( 'message' => 'Morate upload-ovati bar jedan fajl.' ) );
 		}
 
 		// Get material
@@ -173,19 +175,23 @@ class Ajax {
 			wp_send_json_error( array( 'message' => 'Greška pri kreiranju ponude. Pokušajte ponovo.' ) );
 		}
 
-		// Handle file upload if present
-		if ( $has_file ) {
-			$file_result = $this->handle_file_upload( $quote_id, $_FILES['file_upload'] );
-			if ( is_wp_error( $file_result ) ) {
-				wp_send_json_error( array( 'message' => $file_result->get_error_message() ) );
+		// Handle file uploads
+		if ( $has_files ) {
+			$file_count = count( $_FILES['file_upload']['name'] );
+			for ( $i = 0; $i < $file_count; $i++ ) {
+				$file = array(
+					'name'     => $_FILES['file_upload']['name'][ $i ],
+					'type'     => $_FILES['file_upload']['type'][ $i ],
+					'tmp_name' => $_FILES['file_upload']['tmp_name'][ $i ],
+					'error'    => $_FILES['file_upload']['error'][ $i ],
+					'size'     => $_FILES['file_upload']['size'][ $i ],
+				);
+				
+				$file_result = $this->handle_file_upload( $quote_id, $file );
+				if ( is_wp_error( $file_result ) ) {
+					wp_send_json_error( array( 'message' => $file_result->get_error_message() ) );
+				}
 			}
-		}
-
-		// Handle link if present
-		if ( $has_link ) {
-			$this->db->add_quote_file( $quote_id, 'link', array(
-				'url' => esc_url( $_POST['file_link'] ),
-			) );
 		}
 
 		// Send email notification to admin
@@ -231,7 +237,13 @@ class Ajax {
 		$upload_path = $upload_dir['basedir'] . '/rnp-quotes/' . $quote_id . '/';
 		wp_mkdir_p( $upload_path );
 
-		$random_name = 'quote_' . $quote_id . '_' . wp_generate_password( 8, false ) . $file_type['ext'];
+		$original_name = sanitize_file_name( wp_basename( $file['name'] ) );
+		$original_base = pathinfo( $original_name, PATHINFO_FILENAME );
+		$original_ext = pathinfo( $original_name, PATHINFO_EXTENSION );
+		$safe_ext = $original_ext ? strtolower( $original_ext ) : strtolower( (string) $file_type['ext'] );
+		$safe_base = $original_base ? sanitize_file_name( $original_base ) : 'fajl';
+
+		$random_name = 'quote_' . $quote_id . '_' . wp_generate_password( 8, false ) . '_' . $safe_base . '.' . $safe_ext;
 		$file_path = $upload_path . $random_name;
 
 		// Move uploaded file
@@ -274,5 +286,29 @@ class Ajax {
 		);
 
 		wp_mail( get_option( 'admin_email' ), $subject, $message );
+	}
+
+	/**
+	 * Get quote status AJAX handler
+	 */
+	public function get_quote_status() {
+		check_ajax_referer( 'rnp_nonce', 'nonce' );
+
+		$quote_id = isset( $_POST['quote_id'] ) ? intval( $_POST['quote_id'] ) : 0;
+
+		if ( ! $quote_id ) {
+			wp_send_json_error( 'Invalid quote ID' );
+		}
+
+		$quote = $this->db->get_quote( $quote_id );
+
+		if ( ! $quote ) {
+			wp_send_json_error( 'Quote not found' );
+		}
+
+		wp_send_json_success( array(
+			'quote_id' => $quote->id,
+			'status' => $quote->status,
+		) );
 	}
 }

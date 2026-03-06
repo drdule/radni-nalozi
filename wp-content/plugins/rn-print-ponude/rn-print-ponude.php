@@ -3,7 +3,7 @@
  * Plugin Name: RN Print Ponude
  * Plugin URI: https://example.com/rn-print-ponude
  * Description: Kalkulator cena + ponude/poručivanje za štampu (MVP).
- * Version: 0.1.0
+ * Version: 1.0.0
  * Author: drdule
  * Text Domain: rn-print-ponude
  */

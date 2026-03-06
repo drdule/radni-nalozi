@@ -9,7 +9,10 @@
 		constructor() {
 			this.form = document.getElementById('rnp-form');
 			this.materialSelect = document.getElementById('material');
+			this.widthInput = document.getElementById('width');
+			this.heightInput = document.getElementById('height');
 			this.quantityInput = document.getElementById('quantity');
+			this.areaDisplay = document.getElementById('area-value');
 			this.calculatedPriceEl = document.getElementById('calculated-price');
 			this.successMsg = document.getElementById('rnp-success-message');
 			this.errorMsg = document.getElementById('rnp-error-message');
@@ -17,8 +20,8 @@
 			this.finishesGroup = document.getElementById('finishes-group');
 			this.finishesList = document.getElementById('finishes-list');
 			this.dimensionsGroup = document.getElementById('dimensions-group');
-			this.unitDisplay = document.getElementById('unit-display');
-			this.unitLabel = document.getElementById('unit-label');
+			this.dimensionsFields = document.getElementById('dimensions-fields');
+			this.currentUnitType = null;
 
 			this.init();
 		}
@@ -29,7 +32,9 @@
 			// Material selection change
 			this.materialSelect?.addEventListener('change', (e) => this.onMaterialChange(e));
 
-			// Quantity change
+			// Dimension and quantity input changes
+			this.widthInput?.addEventListener('input', () => this.onDimensionsChange());
+			this.heightInput?.addEventListener('input', () => this.onDimensionsChange());
 			this.quantityInput?.addEventListener('input', () => this.calculatePrice());
 
 			// Form submission
@@ -43,13 +48,27 @@
 			});
 		}
 
+		onDimensionsChange() {
+			const width = parseFloat(this.widthInput.value);
+			const height = parseFloat(this.heightInput.value);
+
+			if (width > 0 && height > 0) {
+				// Convert mm to m² (mm * mm / 1,000,000 = m²)
+				const area = (width * height) / 1000000;
+				this.areaDisplay.textContent = area.toFixed(6) + ' m²';
+				this.calculatePrice();
+			} else {
+				this.areaDisplay.textContent = '-';
+				this.calculatedPriceEl.textContent = '-';
+			}
+		}
+
 		async onMaterialChange(e) {
 			const materialId = e.target.value;
 
 			if (!materialId) {
 				this.dimensionsGroup.style.display = 'none';
 				this.finishesGroup.style.display = 'none';
-				this.unitDisplay.textContent = 'Odaberite materijal';
 				this.calculatedPriceEl.textContent = '-';
 				return;
 			}
@@ -61,16 +80,30 @@
 				});
 
 				if (response.success) {
-					const data = response.data;
-					this.unitDisplay.textContent = data.unit_label;
-					this.unitLabel.textContent = data.unit_label;
+					const unitType = response.data.unit_type;
+					this.currentUnitType = unitType;
+					
 					this.dimensionsGroup.style.display = 'block';
+
+					// Show dimensions only for m2
+					if (unitType === 'm2') {
+						this.dimensionsFields.style.display = 'block';
+						this.widthInput.required = true;
+						this.heightInput.required = true;
+					} else {
+						this.dimensionsFields.style.display = 'none';
+						this.widthInput.required = false;
+						this.heightInput.required = false;
+						this.widthInput.value = '';
+						this.heightInput.value = '';
+					}
 
 					// Get finishes
 					await this.loadFinishes(materialId);
 
 					// Reset price
 					this.calculatedPriceEl.textContent = '-';
+					this.areaDisplay.textContent = '-';
 				}
 			} catch (error) {
 				console.error('Error getting material info:', error);
@@ -113,9 +146,29 @@
 			const materialId = this.materialSelect.value;
 			const quantity = parseFloat(this.quantityInput.value);
 
-			if (!materialId || !quantity || quantity <= 0) {
+			if (!materialId || quantity <= 0) {
 				this.calculatedPriceEl.textContent = '-';
 				return;
+			}
+
+			let totalQuantity;
+			
+			// For m2, calculate from dimensions
+			if (this.currentUnitType === 'm2') {
+				const width = parseFloat(this.widthInput.value);
+				const height = parseFloat(this.heightInput.value);
+				
+				if (!width || !height || width <= 0 || height <= 0) {
+					this.calculatedPriceEl.textContent = '-';
+					return;
+				}
+				
+				// Calculate area in m² from mm: (width * height) / 1,000,000
+				const areaSqm = (width * height) / 1000000;
+				totalQuantity = areaSqm * quantity;
+			} else {
+				// For other units (kom, etc), just use quantity
+				totalQuantity = quantity;
 			}
 
 			// Get selected finishes
@@ -126,7 +179,7 @@
 			try {
 				const response = await this.sendAjax('rnp_calculate_price', {
 					material_id: materialId,
-					quantity: quantity,
+					quantity: totalQuantity,
 					finish_ids: selectedFinishes,
 				});
 
@@ -147,18 +200,56 @@
 			// Validate
 			const materialId = this.materialSelect.value;
 			const quantity = this.quantityInput.value;
-			const customerName = document.getElementById('customer-name').value;
-			const customerEmail = document.getElementById('customer-email').value;
-			const fileUpload = document.getElementById('file-upload').files[0];
-			const fileLink = document.getElementById('file-link').value;
+			const customerName = document.getElementById('customer-name').value.trim();
+			const customerEmail = document.getElementById('customer-email').value.trim();
+			const customerPhone = document.getElementById('customer-phone').value.trim();
+			const fileUpload = document.getElementById('file-upload').files;
 
-			if (!materialId || !quantity || !customerName || !customerEmail) {
-				this.showError('Popunite sve obavezne podatke.');
+			// Validate each field individually for better error messages
+			if (!materialId) {
+				this.showError('Izaberite materijal.');
+				return;
+			}
+			
+			if (!quantity || parseFloat(quantity) <= 0) {
+				this.showError('Unesite broj komada.');
+				return;
+			}
+			
+			if (!customerName) {
+				this.showError('Unesite ime i prezime.');
+				return;
+			}
+			
+			if (!customerEmail) {
+				this.showError('Unesite email adresu.');
+				return;
+			}
+			
+			if (!customerPhone) {
+				this.showError('Unesite broj telefona.');
 				return;
 			}
 
-			if (!fileUpload && !fileLink) {
-				this.showError('Morate upload-ovati fajl ili polje link.');
+			// For m2, validate dimensions
+			if (this.currentUnitType === 'm2') {
+				const width = this.widthInput.value;
+				const height = this.heightInput.value;
+				if (!width || !height) {
+					this.showError('Unesite širinu i visinu.');
+					return;
+				}
+			}
+
+			if (fileUpload.length === 0) {
+				this.showError('Morate upload-ovati bar jedan fajl.');
+				return;
+			}
+			
+			// Check if price has been calculated
+			const priceText = this.calculatedPriceEl.textContent.trim();
+			if (!priceText || priceText === '-') {
+				this.showError('Sačekajte da se cena izračuna.');
 				return;
 			}
 
@@ -168,10 +259,42 @@
 			submitBtn.textContent = 'Slanje...';
 
 			try {
-				const formData = new FormData(this.form);
+				let finalQuantity;
+				
+				if (this.currentUnitType === 'm2') {
+					const width = parseFloat(this.widthInput.value);
+					const height = parseFloat(this.heightInput.value);
+					const areaSqm = (width * height) / 1000000;
+					finalQuantity = areaSqm * parseFloat(quantity);
+				} else {
+					finalQuantity = parseFloat(quantity);
+				}
+				
+				// Build FormData with all fields
+				const formData = new FormData();
 				formData.append('action', 'rnp_submit_quote');
 				formData.append('nonce', rnpData.nonce);
-				formData.append('calculated_price', parseFloat(this.calculatedPriceEl.textContent));
+				formData.append('material_id', materialId);
+				formData.append('quantity', finalQuantity);
+				formData.append('customer_name', customerName);
+				formData.append('customer_email', customerEmail);
+				formData.append('customer_phone', customerPhone);
+				formData.append('notes', document.getElementById('notes').value);
+				
+				// Extract numeric value from price text (e.g., "1.785,00 RSD" -> 1785.00)
+				const priceMatch = priceText.match(/[\d.,]+/);
+				if (priceMatch) {
+					// Convert from Serbian format (1.785,00) to standard (1785.00)
+					const priceValue = priceMatch[0].replace(/\./g, '').replace(',', '.');
+					formData.append('calculated_price', parseFloat(priceValue));
+				} else {
+					formData.append('calculated_price', 0);
+				}
+				
+				// Add all files
+				for (let i = 0; i < fileUpload.length; i++) {
+					formData.append('file_upload[]', fileUpload[i]);
+				}
 
 				const response = await fetch(rnpData.ajaxUrl, {
 					method: 'POST',
