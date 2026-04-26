@@ -767,6 +767,87 @@
     padding: 13px;
     font-size: 13px;
   }
+  .order-form {
+    margin-top: 18px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .order-form-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 8px;
+  }
+  .order-form-copy {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .form-field.full { grid-column: 1 / -1; }
+  .form-field label {
+    display: block;
+    color: rgba(232,237,245,0.72);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .form-field input,
+  .form-field select {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: rgba(255,255,255,0.04);
+    color: var(--text);
+    font: inherit;
+    padding: 12px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .form-field select option {
+    background: var(--surface);
+    color: var(--text);
+  }
+  .form-field input:focus,
+  .form-field select:focus {
+    border-color: rgba(255,74,26,0.65);
+    box-shadow: 0 0 0 3px rgba(255,74,26,0.12);
+  }
+  .order-submit {
+    width: 100%;
+    margin-top: 14px;
+    padding: 14px;
+    border: 0;
+    border-radius: 7px;
+    background: var(--orange);
+    color: white;
+    cursor: pointer;
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .order-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 44px rgba(255,74,26,0.42);
+  }
+  .form-disclaimer {
+    margin-top: 10px;
+    color: rgba(232,237,245,0.42);
+    font-size: 11px;
+    line-height: 1.5;
+  }
 
   /* ANIMATIONS */
   .reveal {
@@ -825,6 +906,7 @@
     .btn-outline { width: 100%; }
     .p-cards,
     .modal-plans { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
     .process,
     .feature,
     .privacy,
@@ -1038,21 +1120,60 @@
   <div class="modal-panel" role="document">
     <button class="modal-close" type="button" aria-label="Zatvori modal" data-close-modal>×</button>
     <h2 class="modal-title" id="modalTitle">Preuzmi ArhivEx</h2>
-    <p class="modal-copy">Izaberi način plaćanja i pošalji upit. Odgovaramo preko emaila <a href="mailto:office@format.rs">office@format.rs</a>.</p>
+    <p class="modal-copy">Izaberi način kupovine ili pošalji podatke za predračun. Odgovaramo preko emaila <a href="mailto:office@format.rs">office@format.rs</a>.</p>
     <div class="modal-plans">
       <article class="modal-plan featured">
-        <div class="modal-plan-name">Jednokratno</div>
+        <div class="modal-plan-name">Kontakt email</div>
         <div class="modal-plan-price">149€</div>
-        <p class="modal-plan-note">Plaćaš jednom - tvoje zauvek.</p>
+        <p class="modal-plan-note">Pošalji direktan upit za jednokratnu kupovinu.</p>
         <a class="modal-plan-btn" href="mailto:office@format.rs?subject=ArhivEx%20-%20jednokratna%20kupovina%20149%E2%82%AC">Kontakt za kupovinu</a>
       </article>
       <article class="modal-plan">
-        <div class="modal-plan-name">Mesečna licenca</div>
-        <div class="modal-plan-price">19€</div>
-        <p class="modal-plan-note">Mesečno · Otkaži kad hoćeš.</p>
-        <a class="modal-plan-btn" href="mailto:office@format.rs?subject=ArhivEx%20-%20mese%C4%8Dna%20licenca%2019%E2%82%AC">Kontakt za pretplatu</a>
+        <div class="modal-plan-name">Predračun / uplata na račun</div>
+        <div class="modal-plan-price">149€</div>
+        <p class="modal-plan-note">Pošalji podatke firme za predračun i uplatu na račun.</p>
+        <a class="modal-plan-btn" href="#orderForm">Popuni podatke</a>
       </article>
     </div>
+    <form class="order-form" id="orderForm">
+      <h3 class="order-form-title">Forma za poručivanje</h3>
+      <p class="order-form-copy">Za predračun/uplatu na račun pošalji podatke firme. Forma će otvoriti email sa popunjenim podacima.</p>
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="companyName">Naziv firme</label>
+          <input id="companyName" name="companyName" type="text" autocomplete="organization" required>
+        </div>
+        <div class="form-field">
+          <label for="companyPib">PIB</label>
+          <input id="companyPib" name="companyPib" type="text" inputmode="numeric" required>
+        </div>
+        <div class="form-field">
+          <label for="companyRegistration">Matični broj firme</label>
+          <input id="companyRegistration" name="companyRegistration" type="text" inputmode="numeric" required>
+        </div>
+        <div class="form-field">
+          <label for="contactEmail">Email</label>
+          <input id="contactEmail" name="contactEmail" type="email" autocomplete="email" required>
+        </div>
+        <div class="form-field full">
+          <label for="companyAddress">Adresa firme</label>
+          <input id="companyAddress" name="companyAddress" type="text" autocomplete="street-address" required>
+        </div>
+        <div class="form-field">
+          <label for="contactPhone">Telefon</label>
+          <input id="contactPhone" name="contactPhone" type="tel" autocomplete="tel">
+        </div>
+        <div class="form-field">
+          <label for="selectedPlan">Opcija</label>
+          <select id="selectedPlan" name="selectedPlan">
+            <option value="Jednokratno 149€">Jednokratno 149€</option>
+            <option value="Mesečno 19€">Mesečno 19€</option>
+          </select>
+        </div>
+      </div>
+      <button class="order-submit" type="submit">Pošalji podatke za predračun</button>
+      <p class="form-disclaimer">Napomena: ovo je statička forma i koristi vaš email program za slanje zahteva.</p>
+    </form>
   </div>
 </div>
 
@@ -1062,6 +1183,7 @@
     var menuToggle = document.getElementById('menuToggle');
     var navLinks = document.getElementById('navLinks');
     var modal = document.getElementById('buyModal');
+    var orderForm = document.getElementById('orderForm');
     var lastFocused = null;
     var countdown = document.getElementById('countdown');
     var targetDate = new Date('2025-04-30T00:00:00+02:00').getTime();
@@ -1096,6 +1218,28 @@
 
     function pad(value) {
       return String(value).padStart(2, '0');
+    }
+
+    function buildOrderEmail(event) {
+      event.preventDefault();
+      var formData = new FormData(orderForm);
+      var body = [
+        'Zdravo,',
+        '',
+        'Želim da poručim ArhivEx i molim vas da mi pošaljete predračun.',
+        '',
+        'Opcija: ' + formData.get('selectedPlan'),
+        'Naziv firme: ' + formData.get('companyName'),
+        'PIB: ' + formData.get('companyPib'),
+        'Matični broj firme: ' + formData.get('companyRegistration'),
+        'Adresa: ' + formData.get('companyAddress'),
+        'Email: ' + formData.get('contactEmail'),
+        'Telefon: ' + (formData.get('contactPhone') || '-'),
+        '',
+        'Hvala.'
+      ].join('\n');
+
+      window.location.href = 'mailto:office@format.rs?subject=' + encodeURIComponent('ArhivEx - zahtev za predračun') + '&body=' + encodeURIComponent(body);
     }
 
     function updateCountdown() {
@@ -1138,6 +1282,8 @@
     document.querySelectorAll('.js-buy').forEach(function (button) {
       button.addEventListener('click', openModal);
     });
+
+    orderForm.addEventListener('submit', buildOrderEmail);
 
     modal.addEventListener('click', function (event) {
       if (event.target.hasAttribute('data-close-modal')) {
