@@ -1160,10 +1160,14 @@
           <input id="companyAddress" name="companyAddress" type="text" autocomplete="street-address" required>
         </div>
         <div class="form-field">
+          <label for="contactPerson">Kontakt osoba</label>
+          <input id="contactPerson" name="contactPerson" type="text" autocomplete="name" required>
+        </div>
+        <div class="form-field">
           <label for="contactPhone">Telefon</label>
           <input id="contactPhone" name="contactPhone" type="tel" autocomplete="tel">
         </div>
-        <div class="form-field">
+        <div class="form-field full">
           <label for="selectedPlan">Opcija</label>
           <select id="selectedPlan" name="selectedPlan">
             <option value="Jednokratno 149€">Jednokratno 149€</option>
@@ -1233,6 +1237,7 @@
         'PIB: ' + formData.get('companyPib'),
         'Matični broj firme: ' + formData.get('companyRegistration'),
         'Adresa: ' + formData.get('companyAddress'),
+        'Kontakt osoba: ' + formData.get('contactPerson'),
         'Email: ' + formData.get('contactEmail'),
         'Telefon: ' + (formData.get('contactPhone') || '-'),
         '',
